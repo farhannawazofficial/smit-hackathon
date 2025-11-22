@@ -8,16 +8,16 @@
 </head>
 <body>
     <main class="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div class="w-full max-w-md p-6">
-            <div class="bg-white shadow-md rounded-lg p-6">
-                <h1 class="text-2xl font-bold text-center mb-4">Mini Social Media App</h1>
+        <div class="w-full max-w-sm p-6">
+            <div class="bg-white shadow-lg rounded-xl p-6">
+                <h1 class="text-2xl font-semibold text-center mb-6">Mini Social App</h1>
                 <form class="space-y-4">
-                    <input type="text" placeholder="Name" class="w-full px-3 py-2 border border-gray-300 rounded" />
-                    <input type="email" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded" />
-                    <input type="password" placeholder="Password" class="w-full px-3 py-2 border border-gray-300 rounded" />
-                    <button type="submit" class="w-full bg-blue-600 text-white px-3 py-2 rounded">Login</button>
+                    <input name="name" type="text" placeholder="Name" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <input name="email" type="email" placeholder="Email" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <input name="password" type="password" placeholder="Password" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg">Login</button>
                 </form>
-                <p class="text-center text-sm text-gray-500 mt-4">Don't have an account? Sign up</p>
+                <p class="text-center text-sm text-gray-500 mt-4">Don't have an account? <a href="#" class="text-blue-600">Sign Up</a></p>
             </div>
         </div>
     </main>
