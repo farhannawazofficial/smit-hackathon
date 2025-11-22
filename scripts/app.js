@@ -305,7 +305,7 @@
                         avatarHtml = '<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">'+ (escapeHtml((p.author||'').charAt(0).toUpperCase()) || 'U') +'</div>';
                     }
                     html += '<div class="flex items-center gap-3">' + avatarHtml;
-                    html += '<div><strong class="block dark:text-white">'+ escapeHtml(p.author) +'</strong> <small class="text-xs text-gray-500 dark:text-gray-400">'+ new Date(p.created).toLocaleString() +'</small></div></div>';
+                    html += '<div><strong class="block dark:text-white">'+ escapeHtml(p.author) +'</strong> <small class="text-xs text-gray-500 dark:text-gray-400">· '+ new Date(p.created).toLocaleString() +'</small></div></div>';
                     html += '</div>';
                     html += '<div class="mt-3 text-gray-800 dark:text-gray-200">'+ escapeHtml(p.text) +'</div>'; // Added dark class
                     if (p.image) html += '<div class="mt-3"><img src="'+ escapeHtml(p.image) +'" alt="post image" class="w-full rounded-md"></div>';
@@ -329,8 +329,8 @@
                     // owner-only actions: edit + delete
                     var isOwner = current && (p.email === current.email);
                     if (isOwner) {
-                        html += '<button class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded dark:bg-yellow-900/50 dark:hover:bg-yellow-900 dark:text-yellow-300">Edit</button>';
-                        html += '<button class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300">Delete</button>';
+                        html += '<button data-id="'+p.id+'" class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded dark:bg-yellow-900/50 dark:hover:bg-yellow-900 dark:text-yellow-300">Edit</button>';
+                        html += '<button data-id="'+p.id+'" class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300">Delete</button>';
                     }
                     html += '</div>';
                     // comments area
@@ -344,11 +344,49 @@
                     art.innerHTML = html; container.appendChild(art);
                 });
 
-                // bind actions (unchanged)
+                // Bind Event Listeners
                 container.querySelectorAll('.react-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var reaction = btn.dataset.reaction; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if (i>-1){ posts[i].reactions = posts[i].reactions || {}; var currentReaction = posts[i].reactions[current.email]; if (currentReaction === reaction) { delete posts[i].reactions[current.email]; } else { posts[i].reactions[current.email] = reaction; } savePosts(posts); renderPosts(); } }); });
-                container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ if(!confirm('Delete this post?')) return; var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ if(posts[i].email !== current.email){ alert('You can only delete your own posts'); return; } posts = posts.filter(function(x){ return x.id !== id; }); savePosts(posts); renderPosts(); } }); });
+                
+                // --- FIX: DELETE BUTTON LISTENER ---
+                container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ 
+                    if(!confirm('Delete this post? Are you sure?')) return; 
+                    var id = Number(btn.dataset.id); 
+                    var posts = getPosts(); 
+                    var i = posts.findIndex(function(x){ return x.id===id; }); 
+                    if(i>-1){ 
+                        // Security check for owner
+                        if(posts[i].email !== current.email){ 
+                            alert('You can only delete your own posts'); 
+                            return; 
+                        } 
+                        posts = posts.filter(function(x){ return x.id !== id; }); 
+                        savePosts(posts); 
+                        renderPosts(); 
+                    } 
+                }); });
+                
                 container.querySelectorAll('.comment-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var card = btn.closest('article'); var id = Number(card.querySelector('.comments').dataset.id); var input = card.querySelector('.comment-input'); var text = input.value.trim(); if(!text) return; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ posts[i].comments = posts[i].comments || []; posts[i].comments.push({ author: current.name||current.email, text: text, created: Date.now() }); savePosts(posts); renderPosts(); } }); });
-                container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i===-1) return; if(posts[i].email !== current.email){ alert('You can only edit your own posts'); return; } var newText = prompt('Edit your post text:', posts[i].text || ''); if(newText === null) return; posts[i].text = newText; savePosts(posts); renderPosts(); }); });
+                
+                // --- FIX: EDIT BUTTON LISTENER ---
+                container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ 
+                    var id = Number(btn.dataset.id); 
+                    var posts = getPosts(); 
+                    var i = posts.findIndex(function(x){ return x.id===id; }); 
+                    if(i===-1) return; 
+                    
+                    // Security check for owner
+                    if(posts[i].email !== current.email){ 
+                        alert('You can only edit your own posts'); 
+                        return; 
+                    } 
+                    var newText = prompt('Edit your post text:', posts[i].text || ''); 
+                    if(newText === null || newText.trim() === posts[i].text.trim()) return; // check for cancellation or no change
+                    
+                    posts[i].text = newText; 
+                    savePosts(posts); 
+                    renderPosts(); 
+                }); });
+                
             }
 
             // --- SORTING BUTTONS ONCLICK LOGIC ---
