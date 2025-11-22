@@ -3,11 +3,46 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Feed</title>
+    <title>Feed — Mini Social App</title>
     <link rel="stylesheet" href="./public/style.css">
   </head>
   <body>
-    <!-- Feed skeleton: header, create post, feed will be added later -->
+
+    <!-- Header (Top bar) -->
+    <header>
+      <div>
+        <div class="logo">Mini Social App</div>
+        <div class="search">
+          <input id="search-input" type="text" placeholder="Search posts..." />
+        </div>
+        <div class="user">Welcome, <span id="header-username"></span> <button id="logout-btn">Logout</button></div>
+      </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main>
+
+      <!-- Create Post Section -->
+      <section id="create-post">
+        <h2>What's on your mind?</h2>
+        <textarea id="post-text" rows="3" placeholder="Share something..."></textarea>
+        <input id="post-image" type="text" placeholder="Image URL (optional)" />
+        <button id="post-btn">Post</button>
+      </section>
+
+      <!-- Sorting / Filter Bar -->
+      <section id="controls">
+        <button id="latest">Latest</button>
+        <button id="oldest">Oldest</button>
+        <button id="mostLiked">Most Liked</button>
+      </section>
+
+      <!-- Posts Feed Container (JS will inject cards here) -->
+      <section id="posts-container">
+        <!-- JS will append post cards here -->
+      </section>
+
+    </main>
 
     <script src="./scripts/app.js"></script>
   </body>
