@@ -26,25 +26,24 @@
   </head>
   <body class="bg-gray-100 min-h-screen text-gray-800">
 
-    <header class="bg-white shadow sticky top-0 z-20">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
+    <header class="bg-white shadow sticky top-0 z-20 dark:bg-gray-800">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+
         <div class="flex items-center gap-3 flex-shrink-0">
-          <div class="text-xl font-bold">Social Media App</div>
+          <div class="text-xl font-bold text-blue-600 dark:text-blue-400">Social Media App</div>
         </div>
 
-        <div class="flex-1 order-2 w-full md:order-none md:w-auto">
-          <div class="max-w-md mx-auto hidden md:block">
-            <input id="search-input" type="text" placeholder="Search posts..." class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-          </div>
+        <div class="flex-1 hidden md:block max-w-lg">
+          <input id="search-input" type="text" placeholder="Search posts..." class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
         </div>
 
-        <div class="flex items-center gap-3 w-full md:w-auto justify-end order-1 md:order-none relative">
+        <div class="flex items-center gap-2 relative flex-shrink-0">
             
           <button id="mode-toggle-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none text-gray-600 dark:text-gray-300">
             <i class="fas fa-sun w-5 h-5"></i> 
           </button>
             
-          <button id="profile-toggle-btn" class="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none" aria-expanded="false">
+          <button id="profile-toggle-btn" class="flex items-center gap-1 rounded-full px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none" aria-expanded="false">
             <div id="header-avatar" class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold overflow-hidden"></div>
             <span class="hidden md:inline text-sm text-gray-600 dark:text-gray-300"> <span id="header-username" class="font-medium"></span></span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 ml-1" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
