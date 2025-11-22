@@ -1,4 +1,5 @@
 (function () {
+    // --- Utility Functions (LocalStorage Handlers) ---
     function getUsers() {
         try { return JSON.parse(localStorage.getItem('users') || '[]'); } catch (e) { return []; }
     }
@@ -6,6 +7,8 @@
     function setCurrentUser(user) { localStorage.setItem('currentUser', JSON.stringify(user)); }
     function getCurrentUser() { try { return JSON.parse(localStorage.getItem('currentUser')|| 'null'); } catch (e) { return null; } }
     function clearCurrentUser() { localStorage.removeItem('currentUser'); }
+    function getPosts(){ try { return JSON.parse(localStorage.getItem('posts')||'[]'); } catch(e){ return []; } }
+    function savePosts(p){ localStorage.setItem('posts', JSON.stringify(p)); }
 
     function showMsg(id, msg, ok) {
         var el = document.getElementById(id);
@@ -17,7 +20,50 @@
 
     function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"]+/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m] || m; }); }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    // Global variable to track current sort state
+    var currentSort = 'latest'; 
+
+    // --- DARK / LIGHT MODE LOGIC ---
+    function toggleDarkMode() {
+        var html = document.documentElement;
+        var isDark = html.classList.toggle('dark');
+        var modeBtn = document.getElementById('mode-toggle-btn');
+        var icon = modeBtn ? modeBtn.querySelector('i') : null;
+
+        if (isDark) {
+            localStorage.setItem('theme', 'dark');
+            if (icon) { icon.classList.replace('fa-sun', 'fa-moon'); }
+        } else {
+            localStorage.setItem('theme', 'light');
+            if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
+        }
+    }
+
+    function setupDarkModeToggle() {
+        var modeToggleBtn = document.getElementById('mode-toggle-btn');
+        var savedTheme = localStorage.getItem('theme');
+        var html = document.documentElement;
+        var icon = modeToggleBtn ? modeToggleBtn.querySelector('i') : null;
+
+        // Apply saved theme or default to light if no preference
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            if (icon) { icon.classList.replace('fa-sun', 'fa-moon'); }
+        } else {
+            html.classList.remove('dark');
+            if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
+        }
+        
+        // Add click listener for the toggle button
+        if (modeToggleBtn) {
+            modeToggleBtn.addEventListener('click', toggleDarkMode);
+        }
+    }
+
+    // --- MAIN APPLICATION INITIALIZATION FUNCTION ---
+    function initializeApp() {
+
+        setupDarkModeToggle(); // Run Dark Mode Setup First
 
         // Signup handler (unchanged)
         var signupForm = document.getElementById('signup-form');
@@ -54,12 +100,10 @@
             });
         }
 
-        // Feed page: require auth, show username, logout
+        // --- Feed page logic starts here (Requires Auth) ---
         var headerUser = document.getElementById('header-username');
-        // NOTE: Logout button ID is now profile-logout-menu in HTML
         var logoutBtn = document.getElementById('profile-logout-menu');
         
-        // NOTE: New IDs for Dropdown logic
         var profileToggleBtn = document.getElementById('profile-toggle-btn');
         var profileDropdownMenu = document.getElementById('profile-dropdown-menu');
         var editProfileMenuBtn = document.getElementById('profile-edit-menu'); 
@@ -69,7 +113,7 @@
             if (!current) { location.href = 'index.html'; return; }
             if (headerUser) headerUser.textContent = current.name || current.email;
 
-            // render header avatar if present (unchanged)
+            // render header avatar if present
             var headerAvatar = document.getElementById('header-avatar');
             function renderHeaderAvatar() {
                 if (!headerAvatar) return;
@@ -83,30 +127,24 @@
             }
             renderHeaderAvatar();
 
-            // --- START: NEW PROFILE DROPDOWN LOGIC ---
-            
-            // 1. Dropdown Toggle handler
+            // --- PROFILE DROPDOWN LOGIC ---
             if (profileToggleBtn && profileDropdownMenu) {
                 profileToggleBtn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Stop event from immediately closing the dropdown via document listener
+                    e.stopPropagation(); 
                     profileDropdownMenu.classList.toggle('hidden');
                     profileToggleBtn.setAttribute('aria-expanded', profileDropdownMenu.classList.contains('hidden') ? 'false' : 'true');
                 });
             }
 
-            // 2. Close dropdown on outside click
+            // Close dropdown on outside click
             document.addEventListener('click', function(e) {
                 if (profileDropdownMenu && !profileDropdownMenu.classList.contains('hidden') && !profileToggleBtn.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
                     profileDropdownMenu.classList.add('hidden');
                     profileToggleBtn.setAttribute('aria-expanded', 'false');
                 }
             });
-            // --- END: NEW PROFILE DROPDOWN LOGIC ---
 
-
-            // Edit profile modal handlers (unchanged from original, but attaching Edit button listener)
-            // NOTE: The original code used 'edit-profile-btn' but your HTML now uses 'profile-edit-menu'.
-            // The rest of the modal logic is already in place.
+            // --- EDIT PROFILE MODAL LOGIC (UNCHANGED) ---
             var profileModal = document.getElementById('profile-modal');
             var profileName = document.getElementById('profile-name');
             var profileFile = document.getElementById('profile-avatar-file');
@@ -123,7 +161,6 @@
                 if (me && me.avatar) { profileDataUrl = me.avatar; profilePreview.innerHTML = '<img src="'+ me.avatar +'" class="w-full h-full object-cover">'; } else { profileDataUrl = null; profilePreview.innerHTML = ''; }
                 profileModal.classList.remove('hidden');
                 profileModal.classList.add('flex');
-                // Close the dropdown when opening the modal
                 if (profileDropdownMenu) {
                     profileDropdownMenu.classList.add('hidden');
                     profileToggleBtn.setAttribute('aria-expanded', 'false');
@@ -132,7 +169,6 @@
 
             function closeProfileModal() { if (!profileModal) return; profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); }
 
-            // Attach Edit Profile click listener to the new dropdown button ID
             if (editProfileMenuBtn) editProfileMenuBtn.addEventListener('click', openProfileModal);
             
             if (profileCancel) profileCancel.addEventListener('click', closeProfileModal);
@@ -150,7 +186,7 @@
                     saveUsers(users); 
                     setCurrentUser({ name: users[i].name, email: users[i].email }); 
                     current = getCurrentUser(); 
-                    renderHeaderAvatar(); // update posts authored by this user
+                    renderHeaderAvatar(); 
                     var posts = getPosts(); 
                     posts.forEach(function(p){ if(p.email === current.email) p.author = users[i].name; }); 
                     savePosts(posts); 
@@ -159,14 +195,9 @@
                 }
             });
             
-            // Attach Logout click listener to the new dropdown button ID
             if (logoutBtn) logoutBtn.addEventListener('click', function () { clearCurrentUser(); location.href = 'index.html'; });
 
-            // Posts: create, render, like, delete (unchanged)
-            function getPosts(){ try { return JSON.parse(localStorage.getItem('posts')||'[]'); } catch(e){ return []; } }
-            function savePosts(p){ localStorage.setItem('posts', JSON.stringify(p)); }
-
-            // migrate older likedBy->reactions format (unchanged)
+            // Posts: create, render, like, delete (unchanged logic)
             function migratePosts() {
                 var ps = getPosts();
                 var changed = false;
@@ -221,8 +252,8 @@
                 });
             }
 
-                // pending reactions for animation after re-render (unchanged)
-                var pendingReacts = [];
+            // pending reactions for animation after re-render
+            var pendingReacts = [];
 
             function processPendingReacts(){
                 if (!pendingReacts || !pendingReacts.length) return;
@@ -242,11 +273,27 @@
 
             function renderPosts(){
                 var container = document.getElementById('posts-container'); if(!container) return;
-                var posts = getPosts(); container.innerHTML = '';
+                var posts = getPosts(); 
+                
+                // --- SORTING LOGIC APPLIED HERE ---
+                if (currentSort === 'latest') {
+                    posts.sort(function(a, b) { return b.created - a.created; });
+                } else if (currentSort === 'oldest') {
+                    posts.sort(function(a, b) { return a.created - b.created; });
+                } else if (currentSort === 'mostLiked') {
+                    posts.sort(function(a, b) {
+                        var likesA = Object.keys(a.reactions || {}).length;
+                        var likesB = Object.keys(b.reactions || {}).length;
+                        return likesB - likesA;
+                    });
+                }
+                // --- END SORTING ---
+
+                container.innerHTML = '';
                 var users = getUsers();
                 posts.forEach(function(p){
                     var art = document.createElement('article');
-                    art.className = 'bg-white rounded-lg shadow p-4';
+                    art.className = 'bg-white rounded-lg shadow p-4 dark:bg-gray-800'; // Added dark class
                     var html = '';
                     html += '<div class="flex items-start justify-between gap-3">';
                     // render avatar from users store when available
@@ -258,9 +305,9 @@
                         avatarHtml = '<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">'+ (escapeHtml((p.author||'').charAt(0).toUpperCase()) || 'U') +'</div>';
                     }
                     html += '<div class="flex items-center gap-3">' + avatarHtml;
-                    html += '<div><strong class="block">'+ escapeHtml(p.author) +'</strong> <small class="text-xs text-gray-500">'+ new Date(p.created).toLocaleString() +'</small></div></div>';
+                    html += '<div><strong class="block dark:text-white">'+ escapeHtml(p.author) +'</strong> <small class="text-xs text-gray-500 dark:text-gray-400">'+ new Date(p.created).toLocaleString() +'</small></div></div>';
                     html += '</div>';
-                    html += '<div class="mt-3 text-gray-800">'+ escapeHtml(p.text) +'</div>';
+                    html += '<div class="mt-3 text-gray-800 dark:text-gray-200">'+ escapeHtml(p.text) +'</div>'; // Added dark class
                     if (p.image) html += '<div class="mt-3"><img src="'+ escapeHtml(p.image) +'" alt="post image" class="w-full rounded-md"></div>';
                     html += '<div class="mt-3 flex items-center gap-3">';
                     // reactions counts
@@ -269,57 +316,80 @@
                     Object.keys(reacts).forEach(function(email){ if (reacts[email] === 'heart') counts.heart++; else counts.like++; });
                     var userReaction = (current && reacts && reacts[current.email]) || null;
                     // like (thumb) button
-                    html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2" data-id="'+ p.id +'" data-reaction="like" aria-pressed="'+ (userReaction==='like'? 'true':'false') +'">';
-                    html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='like'? 'text-blue-600':'text-gray-600') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10a2 2 0 012-2h4l1-4 1 4h6a2 2 0 012 2v7a2 2 0 01-2 2H9l-4 4V10z"/></svg>';
-                    if (counts.like>0) html += '<span class="text-xs text-gray-600">'+ counts.like +'</span>';
+                    html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700" data-id="'+ p.id +'" data-reaction="like" aria-pressed="'+ (userReaction==='like'? 'true':'false') +'">';
+                    html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='like'? 'text-blue-600':'text-gray-600 dark:text-gray-400') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10a2 2 0 012-2h4l1-4 1 4h6a2 2 0 012 2v7a2 2 0 01-2 2H9l-4 4V10z"/></svg>';
+                    if (counts.like>0) html += '<span class="text-xs text-gray-600 dark:text-gray-400">'+ counts.like +'</span>';
                     html += '</button>';
                     // heart button
-                    html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2" data-id="'+ p.id +'" data-reaction="heart" aria-pressed="'+ (userReaction==='heart'? 'true':'false') +'">';
-                    html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='heart'? 'text-red-500':'text-gray-600') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
-                    if (counts.heart>0) html += '<span class="text-xs text-gray-600">'+ counts.heart +'</span>';
+                    html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700" data-id="'+ p.id +'" data-reaction="heart" aria-pressed="'+ (userReaction==='heart'? 'true':'false') +'">';
+                    html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='heart'? 'text-red-500':'text-gray-600 dark:text-gray-400') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+                    if (counts.heart>0) html += '<span class="text-xs text-gray-600 dark:text-gray-400">'+ counts.heart +'</span>';
                     html += '</button>';
                     html += '<div class="flex-1"></div>';
-                    // comment-toggle removed as requested
-                    // share button removed as requested
                     // owner-only actions: edit + delete
                     var isOwner = current && (p.email === current.email);
                     if (isOwner) {
-                        html += '<button class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded" data-id="'+ p.id +'">Edit</button>';
-                        html += '<button class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded" data-id="'+ p.id +'">Delete</button>';
+                        html += '<button class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded dark:bg-yellow-900/50 dark:hover:bg-yellow-900 dark:text-yellow-300">Edit</button>';
+                        html += '<button class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300">Delete</button>';
                     }
                     html += '</div>';
                     // comments area
                     html += '<div class="mt-3 comments" data-id="'+ p.id +'">';
                     if (p.comments && p.comments.length) {
-                        p.comments.forEach(function(c){ html += '<div class="text-sm text-gray-700 border-t pt-2 mt-2"><strong>'+ escapeHtml(c.author) +'</strong> <span class="text-xs text-gray-500">· '+ new Date(c.created).toLocaleString() +'</span><div>'+ escapeHtml(c.text) +'</div></div>'; });
+                        p.comments.forEach(function(c){ html += '<div class="text-sm text-gray-700 border-t pt-2 mt-2 dark:text-gray-300 dark:border-gray-700"><strong>'+ escapeHtml(c.author) +'</strong> <span class="text-xs text-gray-500 dark:text-gray-400">· '+ new Date(c.created).toLocaleString() +'</span><div>'+ escapeHtml(c.text) +'</div></div>'; });
                     }
-                    // comment input area kept, but button will be inert since comment toggle removed
-                    html += '<div class="mt-2 flex gap-2"><input class="comment-input flex-1 px-3 py-2 border border-gray-200 rounded" placeholder="Write a comment..." /> <button class="comment-btn bg-blue-600 text-white px-3 py-2 rounded">Reply</button></div>';
+                    // comment input area
+                    html += '<div class="mt-2 flex gap-2"><input class="comment-input flex-1 px-3 py-2 border border-gray-200 rounded dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="Write a comment..." /> <button class="comment-btn bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Reply</button></div>';
                     html += '</div>';
                     art.innerHTML = html; container.appendChild(art);
                 });
 
                 // bind actions (unchanged)
-                // reaction handling (like / heart)
-                container.querySelectorAll('.react-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var reaction = btn.dataset.reaction; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if (i>-1){ posts[i].reactions = posts[i].reactions || {}; var currentReaction = posts[i].reactions[current.email]; if (currentReaction === reaction) { // toggle off
-                        delete posts[i].reactions[current.email];
-                    } else {
-                        posts[i].reactions[current.email] = reaction;
-                    }
-                    savePosts(posts); renderPosts(); } }); });
+                container.querySelectorAll('.react-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var reaction = btn.dataset.reaction; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if (i>-1){ posts[i].reactions = posts[i].reactions || {}; var currentReaction = posts[i].reactions[current.email]; if (currentReaction === reaction) { delete posts[i].reactions[current.email]; } else { posts[i].reactions[current.email] = reaction; } savePosts(posts); renderPosts(); } }); });
                 container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ if(!confirm('Delete this post?')) return; var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ if(posts[i].email !== current.email){ alert('You can only delete your own posts'); return; } posts = posts.filter(function(x){ return x.id !== id; }); savePosts(posts); renderPosts(); } }); });
-                // comment submit handlers
                 container.querySelectorAll('.comment-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var card = btn.closest('article'); var id = Number(card.querySelector('.comments').dataset.id); var input = card.querySelector('.comment-input'); var text = input.value.trim(); if(!text) return; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ posts[i].comments = posts[i].comments || []; posts[i].comments.push({ author: current.name||current.email, text: text, created: Date.now() }); savePosts(posts); renderPosts(); } }); });
-                // edit post (owner only) - prompt-based edit
                 container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i===-1) return; if(posts[i].email !== current.email){ alert('You can only edit your own posts'); return; } var newText = prompt('Edit your post text:', posts[i].text || ''); if(newText === null) return; posts[i].text = newText; savePosts(posts); renderPosts(); }); });
-                // share functionality removed (UI button was removed)
             }
+
+            // --- SORTING BUTTONS ONCLICK LOGIC ---
+            function updateSortButtons(newSort) {
+                document.querySelectorAll('.sort-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                    btn.classList.add('bg-gray-100', 'hover:bg-gray-200', 'dark:bg-gray-700', 'dark:text-gray-200', 'dark:hover:bg-gray-600');
+                });
+                
+                var activeBtn = document.getElementById(newSort + '-sort');
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'dark:bg-gray-700', 'dark:text-gray-200', 'dark:hover:bg-gray-600');
+                    activeBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                }
+            }
+
+            document.getElementById('latest-sort').addEventListener('click', function() {
+                currentSort = 'latest';
+                updateSortButtons('latest');
+                renderPosts();
+            });
+            document.getElementById('oldest-sort').addEventListener('click', function() {
+                currentSort = 'oldest';
+                updateSortButtons('oldest');
+                renderPosts();
+            });
+            document.getElementById('mostLiked-sort').addEventListener('click', function() {
+                currentSort = 'mostLiked';
+                updateSortButtons('mostLiked');
+                renderPosts();
+            });
+            // --- END SORTING BUTTONS ---
 
             // run animations shortly after render to ensure elements exist
             setTimeout(function(){ processPendingReacts(); }, 60);
             renderPosts();
         }
 
-    });
+    } // End initializeApp
+
+    // Use DOMContentLoaded to start the app when the HTML is fully loaded
+    document.addEventListener('DOMContentLoaded', initializeApp);
 
 })();
