@@ -168,6 +168,24 @@
 				});
 			}
 
+				// pending reactions for animation after re-render
+				var pendingReacts = [];
+
+			function processPendingReacts(){
+				if (!pendingReacts || !pendingReacts.length) return;
+				pendingReacts.forEach(function(item){
+					var sel = '.react-btn[data-id="'+ item.id +'"][data-reaction="'+ item.reaction +'"]';
+					var btn = document.querySelector(sel);
+					if (!btn) return;
+					var svg = btn.querySelector('svg');
+					var span = btn.querySelector('span');
+					if (svg){ svg.style.transition = 'transform 180ms ease'; svg.style.transform = 'scale(1.25)'; }
+					if (span){ span.style.transition = 'transform 180ms ease'; span.style.transform = 'scale(1.2)'; }
+					setTimeout(function(){ if (svg) svg.style.transform = ''; if (span) span.style.transform = ''; }, 220);
+				});
+				pendingReacts = [];
+			}
+
 			function renderPosts(){
 				var container = document.getElementById('posts-container'); if(!container) return;
 				var posts = getPosts(); container.innerHTML = '';
