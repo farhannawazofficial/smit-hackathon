@@ -209,7 +209,12 @@
 					html += '<div class="flex-1"></div>';
 					html += '<button class="comment-toggle bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded" data-id="'+ p.id +'">\n<svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V5z"/></svg>Comment ('+ (p.comments? p.comments.length:0) +')</button>';
 					html += '<button class="share-btn bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded" data-id="'+ p.id +'">\n<svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.83-4H9a3 3 0 100 6h3.17A3 3 0 1015 8zM4 13a3 3 0 106 0 3 3 0 00-6 0z"/></svg>Share</button>';
-					html += '<button class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded ml-auto" data-id="'+ p.id +'">Delete</button>';
+					// owner-only actions: edit + delete
+					var isOwner = current && (p.email === current.email);
+					if (isOwner) {
+						html += '<button class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded" data-id="'+ p.id +'">Edit</button>';
+						html += '<button class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded" data-id="'+ p.id +'">Delete</button>';
+					}
 					html += '</div>';
 					// comments area
 					html += '<div class="mt-3 comments" data-id="'+ p.id +'">';
@@ -229,9 +234,11 @@
 						posts[i].reactions[current.email] = reaction;
 					}
 					savePosts(posts); renderPosts(); } }); });
-				container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ if(!confirm('Delete this post?')) return; var id = Number(btn.dataset.id); var posts = getPosts(); posts = posts.filter(function(x){ return x.id !== id; }); savePosts(posts); renderPosts(); }); });
+				container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ if(!confirm('Delete this post?')) return; var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ if(posts[i].email !== current.email){ alert('You can only delete your own posts'); return; } posts = posts.filter(function(x){ return x.id !== id; }); savePosts(posts); renderPosts(); } }); });
 				// comment toggle and submit
 				container.querySelectorAll('.comment-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var card = btn.closest('article'); var id = Number(card.querySelector('.comments').dataset.id); var input = card.querySelector('.comment-input'); var text = input.value.trim(); if(!text) return; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ posts[i].comments = posts[i].comments || []; posts[i].comments.push({ author: current.name||current.email, text: text, created: Date.now() }); savePosts(posts); renderPosts(); } }); });
+				// edit post (owner only) - prompt-based edit
+				container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i===-1) return; if(posts[i].email !== current.email){ alert('You can only edit your own posts'); return; } var newText = prompt('Edit your post text:', posts[i].text || ''); if(newText === null) return; posts[i].text = newText; savePosts(posts); renderPosts(); }); });
 				// share (copy to clipboard)
 				container.querySelectorAll('.share-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var p = posts.find(function(x){ return x.id===id; }); if(!p) return; var text = p.author + '\n' + p.text + (p.image ? '\n' + p.image : ''); try { navigator.clipboard.writeText(text); alert('Post copied to clipboard'); } catch(e){ alert('Copy not available'); } }); });
 			}
