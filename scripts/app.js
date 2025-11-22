@@ -226,7 +226,7 @@
 					if (counts.heart>0) html += '<span class="text-xs text-gray-600">'+ counts.heart +'</span>';
 					html += '</button>';
 					html += '<div class="flex-1"></div>';
-					html += '<button class="comment-toggle bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded" data-id="'+ p.id +'">\n<svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V5z"/></svg>Comment ('+ (p.comments? p.comments.length:0) +')</button>';
+					// comment-toggle removed as requested
 					// share button removed as requested
 					// owner-only actions: edit + delete
 					var isOwner = current && (p.email === current.email);
@@ -240,6 +240,7 @@
 					if (p.comments && p.comments.length) {
 						p.comments.forEach(function(c){ html += '<div class="text-sm text-gray-700 border-t pt-2 mt-2"><strong>'+ escapeHtml(c.author) +'</strong> <span class="text-xs text-gray-500">· '+ new Date(c.created).toLocaleString() +'</span><div>'+ escapeHtml(c.text) +'</div></div>'; });
 					}
+					// comment input area kept, but button will be inert since comment toggle removed
 					html += '<div class="mt-2 flex gap-2"><input class="comment-input flex-1 px-3 py-2 border border-gray-200 rounded" placeholder="Write a comment..." /> <button class="comment-btn bg-blue-600 text-white px-3 py-2 rounded">Reply</button></div>';
 					html += '</div>';
 					art.innerHTML = html; container.appendChild(art);
@@ -254,7 +255,7 @@
 					}
 					savePosts(posts); renderPosts(); } }); });
 				container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ if(!confirm('Delete this post?')) return; var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ if(posts[i].email !== current.email){ alert('You can only delete your own posts'); return; } posts = posts.filter(function(x){ return x.id !== id; }); savePosts(posts); renderPosts(); } }); });
-				// comment toggle and submit
+				// comment submit handlers
 				container.querySelectorAll('.comment-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var card = btn.closest('article'); var id = Number(card.querySelector('.comments').dataset.id); var input = card.querySelector('.comment-input'); var text = input.value.trim(); if(!text) return; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ posts[i].comments = posts[i].comments || []; posts[i].comments.push({ author: current.name||current.email, text: text, created: Date.now() }); savePosts(posts); renderPosts(); } }); });
 				// edit post (owner only) - prompt-based edit
 				container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i===-1) return; if(posts[i].email !== current.email){ alert('You can only edit your own posts'); return; } var newText = prompt('Edit your post text:', posts[i].text || ''); if(newText === null) return; posts[i].text = newText; savePosts(posts); renderPosts(); }); });
