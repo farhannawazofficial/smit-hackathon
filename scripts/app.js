@@ -179,9 +179,10 @@
 					if (!btn) return;
 					var svg = btn.querySelector('svg');
 					var span = btn.querySelector('span');
-					if (svg){ svg.style.transition = 'transform 180ms ease'; svg.style.transform = 'scale(1.25)'; }
-					if (span){ span.style.transition = 'transform 180ms ease'; span.style.transform = 'scale(1.2)'; }
-					setTimeout(function(){ if (svg) svg.style.transform = ''; if (span) span.style.transform = ''; }, 220);
+					// add animation class for CSS-driven pop
+					if (svg) svg.classList.add('react-pop');
+					if (span) span.classList.add('react-pop');
+					setTimeout(function(){ if (svg) svg.classList.remove('react-pop'); if (span) span.classList.remove('react-pop'); }, 300);
 				});
 				pendingReacts = [];
 			}
@@ -221,7 +222,7 @@
 					html += '</button>';
 					// heart button
 					html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2" data-id="'+ p.id +'" data-reaction="heart" aria-pressed="'+ (userReaction==='heart'? 'true':'false') +'">';
-					html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='heart'? 'text-red-500':'text-gray-600') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-10-7.36C-1 8.78 4.24 3 7.5 6.5 9.02 8.08 12 11 12 11s2.98-2.92 4.5-4.5C19.76 3 25 8.78 22 13.64 19 16.65 12 21 12 21z"/></svg>';
+					html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='heart'? 'text-red-500':'text-gray-600') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
 					if (counts.heart>0) html += '<span class="text-xs text-gray-600">'+ counts.heart +'</span>';
 					html += '</button>';
 					html += '<div class="flex-1"></div>';
@@ -261,6 +262,8 @@
 				container.querySelectorAll('.share-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var posts = getPosts(); var p = posts.find(function(x){ return x.id===id; }); if(!p) return; var text = p.author + '\n' + p.text + (p.image ? '\n' + p.image : ''); try { navigator.clipboard.writeText(text); alert('Post copied to clipboard'); } catch(e){ alert('Copy not available'); } }); });
 			}
 
+			// run animations shortly after render to ensure elements exist
+			setTimeout(function(){ processPendingReacts(); }, 60);
 			renderPosts();
 		}
 

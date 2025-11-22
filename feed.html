@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Feed — Mini Social App</title>
     <link rel="stylesheet" href="./public/style.css">
+    <style>
+      /* small pop animation for reaction icons */
+      .react-pop { transform-origin: center; animation: react-pop 260ms ease; }
+      @keyframes react-pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.28); } 100% { transform: scale(1); } }
+    </style>
   </head>
   <body class="bg-gray-100 min-h-screen text-gray-800">
 
