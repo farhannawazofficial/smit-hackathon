@@ -1,5 +1,5 @@
 (function () {
-]    function getUsers() {
+  function getUsers() {
         try { return JSON.parse(localStorage.getItem('users') || '[]'); } catch (e) { return []; }
     }
     function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
