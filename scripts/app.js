@@ -288,9 +288,7 @@
                         return textMatch || authorMatch;
                     });
                 }
-                // --- END SEARCH FILTERING ---
                 
-                // --- SORTING LOGIC APPLIED HERE ---
                 if (currentSort === 'latest') {
                     posts.sort(function(a, b) { return b.created - a.created; });
                 } else if (currentSort === 'oldest') {
@@ -302,7 +300,6 @@
                         return likesB - likesA;
                     });
                 }
-                // --- END SORTING ---
 
                 container.innerHTML = '';
                 var users = getUsers();
@@ -311,7 +308,6 @@
                     art.className = 'bg-white rounded-lg shadow p-4 dark:bg-gray-800'; // Added dark class
                     var html = '';
                     html += '<div class="flex items-start justify-between gap-3">';
-                    // render avatar from users store when available
                     var authorUser = users.find(function(u){ return u.email === p.email; });
                     var avatarHtml = '';
                     if (authorUser && authorUser.avatar) {
@@ -325,51 +321,42 @@
                     html += '<div class="mt-3 text-gray-800 dark:text-gray-200">'+ escapeHtml(p.text) +'</div>'; // Added dark class
                     if (p.image) html += '<div class="mt-3"><img src="'+ escapeHtml(p.image) +'" alt="post image" class="w-full rounded-md"></div>';
                     html += '<div class="mt-3 flex items-center gap-3">';
-                    // reactions counts
                     var reacts = p.reactions || {};
                     var counts = { like:0, heart:0 };
                     Object.keys(reacts).forEach(function(email){ if (reacts[email] === 'heart') counts.heart++; else counts.like++; });
                     var userReaction = (current && reacts && reacts[current.email]) || null;
-                    // like (thumb) button
                     html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700" data-id="'+ p.id +'" data-reaction="like" aria-pressed="'+ (userReaction==='like'? 'true':'false') +'">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='like'? 'text-blue-600':'text-gray-600 dark:text-gray-400') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10a2 2 0 012-2h4l1-4 1 4h6a2 2 0 012 2v7a2 2 0 01-2 2H9l-4 4V10z"/></svg>';
                     if (counts.like>0) html += '<span class="text-xs text-gray-600 dark:text-gray-400">'+ counts.like +'</span>';
                     html += '</button>';
-                    // heart button
                     html += '<button class="react-btn px-2 py-1 rounded flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700" data-id="'+ p.id +'" data-reaction="heart" aria-pressed="'+ (userReaction==='heart'? 'true':'false') +'">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 '+ (userReaction==='heart'? 'text-red-500':'text-gray-600 dark:text-gray-400') +'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
                     if (counts.heart>0) html += '<span class="text-xs text-gray-600 dark:text-gray-400">'+ counts.heart +'</span>';
                     html += '</button>';
                     html += '<div class="flex-1"></div>';
-                    // owner-only actions: edit + delete
                     var isOwner = current && (p.email === current.email);
                     if (isOwner) {
                         html += '<button data-id="'+p.id+'" class="edit-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-3 py-1 rounded dark:bg-yellow-900/50 dark:hover:bg-yellow-900 dark:text-yellow-300">Edit</button>';
                         html += '<button data-id="'+p.id+'" class="delete-btn bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300">Delete</button>';
                     }
                     html += '</div>';
-                    // comments area
                     html += '<div class="mt-3 comments" data-id="'+ p.id +'">';
                     if (p.comments && p.comments.length) {
                         p.comments.forEach(function(c){ html += '<div class="text-sm text-gray-700 border-t pt-2 mt-2 dark:text-gray-300 dark:border-gray-700"><strong>'+ escapeHtml(c.author) +'</strong> <span class="text-xs text-gray-500 dark:text-gray-400">· '+ new Date(c.created).toLocaleString() +'</span><div>'+ escapeHtml(c.text) +'</div></div>'; });
                     }
-                    // comment input area
                     html += '<div class="mt-2 flex gap-2"><input class="comment-input flex-1 px-3 py-2 border border-gray-200 rounded dark:bg-gray-700 dark:text-white dark:border-gray-600" placeholder="Write a comment..." /> <button class="comment-btn bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Reply</button></div>';
                     html += '</div>';
                     art.innerHTML = html; container.appendChild(art);
                 });
 
-                // Bind Event Listeners
                 container.querySelectorAll('.react-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var id = Number(btn.dataset.id); var reaction = btn.dataset.reaction; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if (i>-1){ posts[i].reactions = posts[i].reactions || {}; var currentReaction = posts[i].reactions[current.email]; if (currentReaction === reaction) { delete posts[i].reactions[current.email]; } else { posts[i].reactions[current.email] = reaction; } savePosts(posts); renderPosts(); } }); });
                 
-                // DELETE BUTTON LISTENER
                 container.querySelectorAll('.delete-btn').forEach(function(btn){ btn.addEventListener('click', function(){ 
                     if(!confirm('Delete this post? Are you sure?')) return; 
                     var id = Number(btn.dataset.id); 
                     var posts = getPosts(); 
                     var i = posts.findIndex(function(x){ return x.id===id; }); 
                     if(i>-1){ 
-                        // Security check for owner
                         if(posts[i].email !== current.email){ 
                             alert('You can only delete your own posts'); 
                             return; 
@@ -382,14 +369,12 @@
                 
                 container.querySelectorAll('.comment-btn').forEach(function(btn){ btn.addEventListener('click', function(){ var card = btn.closest('article'); var id = Number(card.querySelector('.comments').dataset.id); var input = card.querySelector('.comment-input'); var text = input.value.trim(); if(!text) return; var posts = getPosts(); var i = posts.findIndex(function(x){ return x.id===id; }); if(i>-1){ posts[i].comments = posts[i].comments || []; posts[i].comments.push({ author: current.name||current.email, text: text, created: Date.now() }); savePosts(posts); renderPosts(); } }); });
                 
-                // EDIT BUTTON LISTENER
                 container.querySelectorAll('.edit-btn').forEach(function(btn){ btn.addEventListener('click', function(){ 
                     var id = Number(btn.dataset.id); 
                     var posts = getPosts(); 
                     var i = posts.findIndex(function(x){ return x.id===id; }); 
                     if(i===-1) return; 
                     
-                    // Security check for owner
                     if(posts[i].email !== current.email){ 
                         alert('You can only edit your own posts'); 
                         return; 
@@ -404,15 +389,11 @@
                 
             }
             
-            // --- NEW: SEARCH INPUT LISTENER ---
             if (searchInput) {
-                // Rerender posts whenever the user types in the search box
                 searchInput.addEventListener('input', renderPosts);
             }
-            // --- END NEW SEARCH INPUT LISTENER ---
 
 
-            // --- SORTING BUTTONS ONCLICK LOGIC ---
             function updateSortButtons(newSort) {
                 document.querySelectorAll('.sort-btn').forEach(btn => {
                     btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
@@ -441,16 +422,13 @@
                 updateSortButtons('mostLiked');
                 renderPosts();
             });
-            // --- END SORTING BUTTONS ---
 
-            // run animations shortly after render to ensure elements exist
             setTimeout(function(){ processPendingReacts(); }, 60);
             renderPosts();
         }
 
-    } // End initializeApp
+    } 
 
-    // Use DOMContentLoaded to start the app when the HTML is fully loaded
     document.addEventListener('DOMContentLoaded', initializeApp);
 
 })();
