@@ -1,5 +1,4 @@
 (function () {
-    // --- Utility Functions (LocalStorage Handlers) ---
     function getUsers() {
         try { return JSON.parse(localStorage.getItem('users') || '[]'); } catch (e) { return []; }
     }
@@ -20,10 +19,8 @@
 
     function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"]+/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m] || m; }); }
 
-    // Global variable to track current sort state
     var currentSort = 'latest'; 
 
-    // --- DARK / LIGHT MODE LOGIC ---
     function toggleDarkMode() {
         var html = document.documentElement;
         var isDark = html.classList.toggle('dark');
@@ -45,7 +42,6 @@
         var html = document.documentElement;
         var icon = modeToggleBtn ? modeToggleBtn.querySelector('i') : null;
 
-        // Apply saved theme or default to light if no preference
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             html.classList.add('dark');
             if (icon) { icon.classList.replace('fa-sun', 'fa-moon'); }
@@ -278,11 +274,9 @@
                 var container = document.getElementById('posts-container'); if(!container) return;
                 var posts = getPosts(); 
                 
-                // --- NEW: SEARCH FILTERING LOGIC ---
                 var searchTerm = (searchInput ? searchInput.value.toLowerCase() : '').trim();
                 if (searchTerm) {
                     posts = posts.filter(function(p) {
-                        // Check if search term is in post text or author name (case-insensitive)
                         var textMatch = p.text && p.text.toLowerCase().includes(searchTerm);
                         var authorMatch = p.author && p.author.toLowerCase().includes(searchTerm);
                         return textMatch || authorMatch;
