@@ -50,18 +50,14 @@
             if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
         }
         
-        // Add click listener for the toggle button
         if (modeToggleBtn) {
             modeToggleBtn.addEventListener('click', toggleDarkMode);
         }
     }
 
-    // --- MAIN APPLICATION INITIALIZATION FUNCTION ---
     function initializeApp() {
 
-        setupDarkModeToggle(); // Run Dark Mode Setup First
-
-        // Signup handler (unchanged)
+        setupDarkModeToggle(); 
         var signupForm = document.getElementById('signup-form');
         if (signupForm) {
             signupForm.addEventListener('submit', function (e) {
@@ -79,7 +75,6 @@
             });
         }
 
-        // Login handler (unchanged)
         var loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', function (e) {
@@ -96,7 +91,6 @@
             });
         }
 
-        // --- Feed page logic starts here (Requires Auth) ---
         var headerUser = document.getElementById('header-username');
         var logoutBtn = document.getElementById('profile-logout-menu');
         
@@ -104,7 +98,6 @@
         var profileDropdownMenu = document.getElementById('profile-dropdown-menu');
         var editProfileMenuBtn = document.getElementById('profile-edit-menu'); 
         
-        // NEW: Get Search Input element
         var searchInput = document.getElementById('search-input'); 
 
         if (headerUser || logoutBtn || document.getElementById('post-btn')) {
@@ -112,7 +105,6 @@
             if (!current) { location.href = 'index.html'; return; }
             if (headerUser) headerUser.textContent = current.name || current.email;
 
-            // render header avatar if present
             var headerAvatar = document.getElementById('header-avatar');
             function renderHeaderAvatar() {
                 if (!headerAvatar) return;
@@ -126,7 +118,6 @@
             }
             renderHeaderAvatar();
 
-            // --- PROFILE DROPDOWN LOGIC (UNCHANGED) ---
             if (profileToggleBtn && profileDropdownMenu) {
                 profileToggleBtn.addEventListener('click', function(e) {
                     e.stopPropagation(); 
@@ -135,7 +126,6 @@
                 });
             }
 
-            // Close dropdown on outside click
             document.addEventListener('click', function(e) {
                 if (profileDropdownMenu && !profileDropdownMenu.classList.contains('hidden') && !profileToggleBtn.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
                     profileDropdownMenu.classList.add('hidden');
@@ -143,7 +133,6 @@
                 }
             });
 
-            // --- EDIT PROFILE MODAL LOGIC (UNCHANGED) ---
             var profileModal = document.getElementById('profile-modal');
             var profileName = document.getElementById('profile-name');
             var profileFile = document.getElementById('profile-avatar-file');
@@ -196,7 +185,6 @@
             
             if (logoutBtn) logoutBtn.addEventListener('click', function () { clearCurrentUser(); location.href = 'index.html'; });
 
-            // Posts: create, render, like, delete (unchanged logic)
             function migratePosts() {
                 var ps = getPosts();
                 var changed = false;
@@ -211,7 +199,6 @@
             }
             migratePosts();
 
-            // Image file handling and post creation (unchanged)
             var imageFileInput = document.getElementById('post-image-file');
             var imageUrlInput = document.getElementById('post-image-url');
             var imagePreview = document.getElementById('image-preview');
@@ -251,7 +238,6 @@
                 });
             }
 
-            // pending reactions for animation after re-render
             var pendingReacts = [];
 
             function processPendingReacts(){
@@ -262,7 +248,6 @@
                     if (!btn) return;
                     var svg = btn.querySelector('svg');
                     var span = btn.querySelector('span');
-                    // add animation class for CSS-driven pop
                     if (svg) svg.classList.add('react-pop');
                     if (span) span.classList.add('react-pop');
                     setTimeout(function(){ if (svg) svg.classList.remove('react-pop'); if (span) span.classList.remove('react-pop'); }, 300);
