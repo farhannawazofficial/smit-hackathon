@@ -1,6 +1,5 @@
 (function () {
-    // --- Utility Functions (LocalStorage Handlers) ---
-    function getUsers() {
+]    function getUsers() {
         try { return JSON.parse(localStorage.getItem('users') || '[]'); } catch (e) { return []; }
     }
     function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
@@ -20,10 +19,8 @@
 
     function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"]+/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m] || m; }); }
 
-    // Global variable to track current sort state
     var currentSort = 'latest'; 
 
-    // --- DARK / LIGHT MODE LOGIC ---
     function toggleDarkMode() {
         var html = document.documentElement;
         var isDark = html.classList.toggle('dark');
@@ -45,7 +42,6 @@
         var html = document.documentElement;
         var icon = modeToggleBtn ? modeToggleBtn.querySelector('i') : null;
 
-        // Apply saved theme or default to light if no preference
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             html.classList.add('dark');
             if (icon) { icon.classList.replace('fa-sun', 'fa-moon'); }
@@ -54,18 +50,14 @@
             if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
         }
         
-        // Add click listener for the toggle button
         if (modeToggleBtn) {
             modeToggleBtn.addEventListener('click', toggleDarkMode);
         }
     }
 
-    // --- MAIN APPLICATION INITIALIZATION FUNCTION ---
     function initializeApp() {
 
-        setupDarkModeToggle(); // Run Dark Mode Setup First
-
-        // Signup handler (unchanged)
+        setupDarkModeToggle(); 
         var signupForm = document.getElementById('signup-form');
         if (signupForm) {
             signupForm.addEventListener('submit', function (e) {
@@ -83,7 +75,6 @@
             });
         }
 
-        // Login handler (unchanged)
         var loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', function (e) {
@@ -100,7 +91,6 @@
             });
         }
 
-        // --- Feed page logic starts here (Requires Auth) ---
         var headerUser = document.getElementById('header-username');
         var logoutBtn = document.getElementById('profile-logout-menu');
         
@@ -113,7 +103,6 @@
             if (!current) { location.href = 'index.html'; return; }
             if (headerUser) headerUser.textContent = current.name || current.email;
 
-            // render header avatar if present
             var headerAvatar = document.getElementById('header-avatar');
             function renderHeaderAvatar() {
                 if (!headerAvatar) return;
@@ -127,7 +116,6 @@
             }
             renderHeaderAvatar();
 
-            // --- PROFILE DROPDOWN LOGIC ---
             if (profileToggleBtn && profileDropdownMenu) {
                 profileToggleBtn.addEventListener('click', function(e) {
                     e.stopPropagation(); 
@@ -136,7 +124,6 @@
                 });
             }
 
-            // Close dropdown on outside click
             document.addEventListener('click', function(e) {
                 if (profileDropdownMenu && !profileDropdownMenu.classList.contains('hidden') && !profileToggleBtn.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
                     profileDropdownMenu.classList.add('hidden');
@@ -144,7 +131,6 @@
                 }
             });
 
-            // --- EDIT PROFILE MODAL LOGIC (UNCHANGED) ---
             var profileModal = document.getElementById('profile-modal');
             var profileName = document.getElementById('profile-name');
             var profileFile = document.getElementById('profile-avatar-file');
@@ -197,7 +183,6 @@
             
             if (logoutBtn) logoutBtn.addEventListener('click', function () { clearCurrentUser(); location.href = 'index.html'; });
 
-            // Posts: create, render, like, delete (unchanged logic)
             function migratePosts() {
                 var ps = getPosts();
                 var changed = false;
@@ -212,7 +197,6 @@
             }
             migratePosts();
 
-            // Image file handling and post creation (unchanged)
             var imageFileInput = document.getElementById('post-image-file');
             var imageUrlInput = document.getElementById('post-image-url');
             var imagePreview = document.getElementById('image-preview');
