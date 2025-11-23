@@ -58,6 +58,7 @@
     function initializeApp() {
 
         setupDarkModeToggle(); 
+
         var signupForm = document.getElementById('signup-form');
         if (signupForm) {
             signupForm.addEventListener('submit', function (e) {
@@ -106,14 +107,32 @@
             if (headerUser) headerUser.textContent = current.name || current.email;
 
             var headerAvatar = document.getElementById('header-avatar');
+            var createPostAvatar = document.getElementById('create-post-avatar'); 
+
             function renderHeaderAvatar() {
-                if (!headerAvatar) return;
+                if (!headerAvatar && !createPostAvatar) return;
                 var users = getUsers();
                 var me = users.find(function(u){ return u.email === current.email; });
+                
+                var avatarContent = '';
                 if (me && me.avatar) {
-                    headerAvatar.innerHTML = '<img src="'+ me.avatar +'" alt="avatar" class="w-full h-full object-cover">';
+                    avatarContent = '<img src="'+ me.avatar +'" alt="avatar" class="w-full h-full object-cover">';
                 } else {
-                    headerAvatar.textContent = (current.name||current.email||'U').charAt(0).toUpperCase();
+                    avatarContent = (current.name||current.email||'U').charAt(0).toUpperCase();
+                }
+                
+                if (headerAvatar) {
+                    headerAvatar.innerHTML = avatarContent;
+                    headerAvatar.className = (me && me.avatar) 
+                        ? 'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold overflow-hidden' 
+                        : 'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold';
+                }
+                
+                if (createPostAvatar) {
+                    createPostAvatar.innerHTML = avatarContent;
+                    createPostAvatar.className = (me && me.avatar) 
+                        ? 'w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold flex-shrink-0 overflow-hidden'
+                        : 'w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold flex-shrink-0';
                 }
             }
             renderHeaderAvatar();
@@ -222,18 +241,42 @@
                 if (!dataUrl) { imagePreview.innerHTML = ''; return; }
                 imagePreview.innerHTML = '<img src="'+ dataUrl +'" alt="preview" class="w-full rounded-md">';
             }
+            
+            var postTextarea = document.getElementById('post-text');
+            function autoResizeTextarea(el) {
+                if (!el) return;
+                el.style.height = 'auto'; 
+                el.style.height = el.scrollHeight + 'px'; 
+                if (el.scrollHeight < 40) el.style.height = '40px'; 
+            }
+
+            if (postTextarea) {
+                postTextarea.addEventListener('input', function() {
+                    autoResizeTextarea(this);
+                });
+                autoResizeTextarea(postTextarea); 
+            }
+
 
             var postBtn = document.getElementById('post-btn');
             if (postBtn) {
                 postBtn.addEventListener('click', function () {
-                    var text = (document.getElementById('post-text')||{}).value || '';
-                    var imageUrl = (imageUrlInput||{}).value || '';
+                    var text = (postTextarea||{}).value || '';
+                    var imageUrl = (imageUrlInput && imageUrlInput.value) || ''; 
                     var imageData = selectedImageDataUrl || (imageUrl ? imageUrl : null);
-                    if (!text && !imageData) { alert('Please add text or an image'); return; }
+                    
+                    if (!text.trim() && !imageData) { alert('Please add text or an image'); return; }
+                    
                     var posts = getPosts();
-                    var post = { id: Date.now(), author: current.name || current.email, email: current.email, text: text, image: imageData, reactions: {}, comments: [], created: Date.now() };
+                    var post = { id: Date.now(), author: current.name || current.email, email: current.email, text: text.trim(), image: imageData, reactions: {}, comments: [], created: Date.now() };
                     posts.unshift(post); savePosts(posts);
-                    (document.getElementById('post-text')||{}).value=''; if(imageUrlInput) imageUrlInput.value=''; selectedImageDataUrl=null; renderPreview(null);
+                    
+                    if(postTextarea) postTextarea.value = '';
+                    if(postTextarea) postTextarea.style.height = '40px'; 
+                    if(imageUrlInput) imageUrlInput.value = ''; 
+                    if(imageFileInput) imageFileInput.value = ''; 
+                    selectedImageDataUrl = null; 
+                    renderPreview(null);
                     renderPosts();
                 });
             }
@@ -284,7 +327,7 @@
                 var users = getUsers();
                 posts.forEach(function(p){
                     var art = document.createElement('article');
-                    art.className = 'bg-white rounded-lg shadow p-4 dark:bg-gray-800'; // Added dark class
+                    art.className = 'bg-white rounded-lg shadow p-4 dark:bg-gray-800'; 
                     var html = '';
                     html += '<div class="flex items-start justify-between gap-3">';
                     var authorUser = users.find(function(u){ return u.email === p.email; });
@@ -297,7 +340,7 @@
                     html += '<div class="flex items-center gap-3">' + avatarHtml;
                     html += '<div><strong class="block dark:text-white">'+ escapeHtml(p.author) +'</strong> <small class="text-xs text-gray-500 dark:text-gray-400">· '+ new Date(p.created).toLocaleString() +'</small></div></div>';
                     html += '</div>';
-                    html += '<div class="mt-3 text-gray-800 dark:text-gray-200">'+ escapeHtml(p.text) +'</div>'; // Added dark class
+                    html += '<div class="mt-3 text-gray-800 dark:text-gray-200">'+ escapeHtml(p.text) +'</div>'; 
                     if (p.image) html += '<div class="mt-3"><img src="'+ escapeHtml(p.image) +'" alt="post image" class="w-full rounded-md"></div>';
                     html += '<div class="mt-3 flex items-center gap-3">';
                     var reacts = p.reactions || {};
@@ -359,7 +402,7 @@
                         return; 
                     } 
                     var newText = prompt('Edit your post text:', posts[i].text || ''); 
-                    if(newText === null || newText.trim() === posts[i].text.trim()) return; // check for cancellation or no change
+                    if(newText === null || newText.trim() === posts[i].text.trim()) return; 
                     
                     posts[i].text = newText; 
                     savePosts(posts); 
@@ -371,7 +414,6 @@
             if (searchInput) {
                 searchInput.addEventListener('input', renderPosts);
             }
-
 
             function updateSortButtons(newSort) {
                 document.querySelectorAll('.sort-btn').forEach(btn => {
