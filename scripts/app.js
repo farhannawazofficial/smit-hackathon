@@ -74,17 +74,17 @@
         let modeBtn = document.getElementById('mode-toggle-btn');
         let icon = modeBtn ? modeBtn.querySelector('i') : null;
 
-        if (isDark) {
-            localStorage.setItem('theme', 'dark');
-            if (icon) {
-                icon.classList.replace('fa-sun', 'fa-moon');
-            }
-        } else {
-            localStorage.setItem('theme', 'light');
-            if (icon) {
-                icon.classList.replace('fa-moon', 'fa-sun');
-            }
-        }
+        // if (isDark) {
+        //     localStorage.setItem('theme', 'dark');
+        //     if (icon) {
+        //         icon.classList.replace('fa-sun', 'fa-moon');
+        //     }
+        // } else {
+        //     localStorage.setItem('theme', 'light');
+        //     if (icon) {
+        //         icon.classList.replace('fa-moon', 'fa-sun');
+        //     }
+        // }
     }
 
     function setupDarkModeToggle() {
